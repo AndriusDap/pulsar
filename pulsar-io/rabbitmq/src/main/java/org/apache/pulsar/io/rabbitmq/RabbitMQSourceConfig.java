@@ -44,6 +44,20 @@ public class RabbitMQSourceConfig extends RabbitMQAbstractConfig implements Seri
     private String queueName;
 
     @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "Comma separated routing keys for the topic filtering"
+    )
+    private String routingKeys = "";
+
+    @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "Exchange to bind the queue to"
+    )
+    private String exchange = "";
+
+    @FieldDoc(
         required = false,
         defaultValue = "0",
         help = "Maximum number of messages that the server will deliver, 0 for unlimited")
@@ -56,10 +70,30 @@ public class RabbitMQSourceConfig extends RabbitMQAbstractConfig implements Seri
     private boolean prefetchGlobal = false;
 
     @FieldDoc(
-            required = false,
-            defaultValue = "false",
-            help = "Set true if the queue should be declared passively - ie to preserve durability/timeout settings")
+        required = false,
+        defaultValue = "false",
+        help = "Set true if the queue should be declared passively - ie to preserve durability/timeout settings")
     private boolean passive = false;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "false",
+        help = "Set true if the queue should be durable")
+    private boolean durable = false;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "false",
+        help = "Set true if the queue should be exclusive")
+    private boolean exclusive = false;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "false",
+        help = "Set true if the queue should be auto deleted")
+    private boolean autoDelete = false;
+
+
 
     public static RabbitMQSourceConfig load(String yamlFile) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -76,5 +110,12 @@ public class RabbitMQSourceConfig extends RabbitMQAbstractConfig implements Seri
         super.validate();
         Preconditions.checkNotNull(queueName, "queueName property not set.");
         Preconditions.checkArgument(prefetchCount >= 0, "prefetchCount must be non-negative.");
+
+        if (!exchange.isEmpty()) {
+            Preconditions.checkArgument(
+                    routingKeys.split(",").length > 0,
+                    "routing keys must be provided together with exchange"
+            );
+        }
     }
 }
